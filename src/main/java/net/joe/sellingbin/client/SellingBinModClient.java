@@ -22,14 +22,12 @@ public class SellingBinModClient implements ClientModInitializer {
     public void onInitializeClient() {
         ClientPlayConnectionEvents.INIT.register(ConfigSynchronizer::client);
 
-        ItemTooltipCallback.EVENT.register((stack, context, lines) -> {
+        ItemTooltipCallback.EVENT.register((stack, context, type, lines) -> {
             for (Trade item : matches) {
                 if (item.matches(stack)) {
-                    String translation = I18n.translate(Registries.ITEM.get(new Identifier(item.getCurrency())).getTranslationKey());
                     MutableText tooltipText = Text.literal(String.format(I18n.translate("selling-bin.tooltip.sell"),
                             item.getSellAmount(),
-                            item.getSellPrice(),
-                            translation));
+                            item.getSellPrice()));
 
                     lines.add(tooltipText.setStyle(Style.EMPTY.withColor(item.getColor())));
                 }

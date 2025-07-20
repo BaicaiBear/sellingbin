@@ -1,5 +1,6 @@
 package net.joe.sellingbin.bins.wooden;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
@@ -26,6 +27,11 @@ public class WoodenBinBlock extends BlockWithEntity {
 
     public WoodenBinBlock(Settings settings) {
         super(settings);
+    }
+
+    @Override
+    protected MapCodec<? extends BlockWithEntity> getCodec() {
+        return createCodec(WoodenBinBlock::new);
     }
 
     @Override
@@ -57,21 +63,6 @@ public class WoodenBinBlock extends BlockWithEntity {
     @Override
     public BlockRenderType getRenderType(BlockState state) {
         return BlockRenderType.MODEL;
-    }
-
-    @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if (!world.isClient) {
-            WoodenBinBlockEntity woodenBinBlockEntity = (WoodenBinBlockEntity) world.getBlockEntity(pos);
-            woodenBinBlockEntity.sellItems(player);
-
-            NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
-
-            if (screenHandlerFactory != null) {
-                player.openHandledScreen(screenHandlerFactory);
-            }
-        }
-        return ActionResult.SUCCESS;
     }
 
     @Override

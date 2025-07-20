@@ -1,5 +1,6 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "pattern": [
     "#i#",
     "###"
@@ -9,11 +10,11 @@
       "tag": "minecraft:planks"
     },
     "i": {
-      "item": "minecraft:iron_ingot"
+      "item": "numismatic-overhaul:silver_coin"
     }
   },
   "result": {
-    "item": "selling-bin:wooden_bin",
+    "id": "selling-bin:wooden_bin",
     "count": 1
   }
 }

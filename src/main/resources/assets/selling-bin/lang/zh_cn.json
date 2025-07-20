@@ -1,7 +1,4 @@
 {
   "block.selling-bin.wooden_bin": "木制售货箱",
-  "block.selling-bin.iron_bin": "铁制售货箱",
-  "block.selling-bin.diamond_bin": "钻石售货箱",
-  "block.selling-bin.netherite_bin":"下界合金售货箱",
-  "selling-bin.tooltip.sell": "出售 §f%sx§r 获取 §f%sx§r §f§l%s"
+  "selling-bin.tooltip.sell": "出售 §f%sx§r 获取 §f%sx§r §f§lx币"
 }

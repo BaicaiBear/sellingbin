@@ -7,7 +7,6 @@ import net.minecraft.util.Identifier;
 
 public class Trade {
     private String name;
-    private String currency;
     private int sellPrice;
     private int sellAmount;
     private String color = Integer.toHexString(Formatting.DARK_GRAY.getColorIndex()).toUpperCase();
@@ -19,14 +18,6 @@ public class Trade {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(String currency) {
-        this.currency = currency;
     }
 
     public int getSellPrice() {
@@ -57,6 +48,6 @@ public class Trade {
     }
 
     public boolean matches(ItemStack stack) {
-        return Registries.ITEM.getId(stack.getItem()).equals(new Identifier(this.name));
+        return Registries.ITEM.getId(stack.getItem()).equals(Identifier.of(this.name));
     }
 }

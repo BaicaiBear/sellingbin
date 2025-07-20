@@ -1,8 +1,0 @@
-{
-  "replace": false,
-  "values": [
-    "selling-bin:iron_bin",
-	"selling-bin:diamond_bin",
-    "selling-bin:netherite_bin"
-  ]
-}

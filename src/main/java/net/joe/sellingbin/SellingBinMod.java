@@ -4,12 +4,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.joe.sellingbin.bins.diamond.DiamondBinBlock;
-import net.joe.sellingbin.bins.diamond.DiamondBinBlockEntity;
-import net.joe.sellingbin.bins.iron.IronBinBlock;
-import net.joe.sellingbin.bins.iron.IronBinBlockEntity;
-import net.joe.sellingbin.bins.netherite.NetheriteBinBlock;
-import net.joe.sellingbin.bins.netherite.NetheriteBinBlockEntity;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.joe.sellingbin.bins.wooden.WoodenBinBlock;
 import net.joe.sellingbin.bins.wooden.WoodenBinBlockEntity;
 import net.fabricmc.api.ModInitializer;
@@ -22,14 +20,17 @@ import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityT
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.client.session.telemetry.WorldLoadTimesEvent;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroups;
 import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
@@ -47,19 +48,16 @@ public class SellingBinMod implements ModInitializer {
 
     public static final String defaultConfig = "{\n" +
             "\t\"minecraft:cobblestone\": {\n" +
-            "\t  \"currency\": \"minecraft:iron_ingot\",\n" +
             "\t  \"sellPrice\": 1,\n" +
             "\t  \"sellAmount\": 64,\n" +
             "\t  \"color\": \"FFAAAAAA\" // color stored in argb hex format (first two symbols is alpha) \n" +
             "\t},\n" +
             "\t\"minecraft:glowstone\": {\n" +
-            "\t  \"currency\": \"minecraft:iron_ingot\",\n" +
             "\t  \"sellPrice\": 3,\n" +
             "\t  \"sellAmount\": 16,\n" +
             "\t  \"color\": \"FFFFFF33\"\n" +
             "\t},\n" +
             "\t\"minecraft:wheat_seeds\": {\n" +
-            "\t  \"currency\": \"minecraft:iron_ingot\",\n" +
             "\t  \"sellPrice\": 1,\n" +
             "\t  \"sellAmount\": 64\n" +
             "\t}\n" +
@@ -73,22 +71,7 @@ public class SellingBinMod implements ModInitializer {
     public static final Block WOODEN_BIN_BLOCK;
     public static final BlockItem WOODEN_BIN_BLOCK_ITEM;
     public static final BlockEntityType<WoodenBinBlockEntity> WOODEN_BIN_BLOCK_ENTITY;
-    public static final Identifier WOODEN_BIN = new Identifier("selling-bin", "wooden_bin");
-
-    public static final Block IRON_BIN_BLOCK;
-    public static final BlockItem IRON_BIN_BLOCK_ITEM;
-    public static final BlockEntityType<IronBinBlockEntity> IRON_BIN_BLOCK_ENTITY;
-    public static final Identifier IRON_BIN = new Identifier("selling-bin", "iron_bin");
-
-    public static final Block DIAMOND_BIN_BLOCK;
-    public static final BlockItem DIAMOND_BIN_BLOCK_ITEM;
-    public static final BlockEntityType<DiamondBinBlockEntity> DIAMOND_BIN_BLOCK_ENTITY;
-    public static final Identifier DIAMOND_BIN = new Identifier("selling-bin", "diamond_bin");
-
-    public static final Block NETHERITE_BIN_BLOCK;
-    public static final BlockItem NETHERITE_BIN_BLOCK_ITEM;
-    public static final BlockEntityType<NetheriteBinBlockEntity> NETHERITE_BIN_BLOCK_ENTITY;
-    public static final Identifier NETHERITE_BIN = new Identifier("selling-bin", "netherite_bin");
+    public static final Identifier WOODEN_BIN = Identifier.of("selling-bin", "wooden_bin");
 
     public static final PlayerInventoryManager inventoryManager = new PlayerInventoryManager();
     public static final File inventoryFile = new File("config/selling-bin.dat");
@@ -99,23 +82,8 @@ public class SellingBinMod implements ModInitializer {
         WOODEN_BIN_BLOCK_ITEM = Registry.register(Registries.ITEM, WOODEN_BIN, new BlockItem(WOODEN_BIN_BLOCK, new Item.Settings()));
         WOODEN_BIN_BLOCK_ENTITY = Registry.register(Registries.BLOCK_ENTITY_TYPE, WOODEN_BIN, FabricBlockEntityTypeBuilder.create(WoodenBinBlockEntity::new, WOODEN_BIN_BLOCK).build(null));
 
-        IRON_BIN_BLOCK = Registry.register(Registries.BLOCK, IRON_BIN, new IronBinBlock(FabricBlockSettings.copyOf(Blocks.CHEST).requiresTool()));
-        IRON_BIN_BLOCK_ITEM = Registry.register(Registries.ITEM, IRON_BIN, new BlockItem(IRON_BIN_BLOCK, new Item.Settings()));
-        IRON_BIN_BLOCK_ENTITY = Registry.register(Registries.BLOCK_ENTITY_TYPE, IRON_BIN, FabricBlockEntityTypeBuilder.create(IronBinBlockEntity::new, IRON_BIN_BLOCK).build(null));
-
-        DIAMOND_BIN_BLOCK = Registry.register(Registries.BLOCK, DIAMOND_BIN, new DiamondBinBlock(FabricBlockSettings.copyOf(Blocks.CHEST).requiresTool()));
-        DIAMOND_BIN_BLOCK_ITEM = Registry.register(Registries.ITEM, DIAMOND_BIN, new BlockItem(DIAMOND_BIN_BLOCK, new Item.Settings()));
-        DIAMOND_BIN_BLOCK_ENTITY = Registry.register(Registries.BLOCK_ENTITY_TYPE, DIAMOND_BIN, FabricBlockEntityTypeBuilder.create(DiamondBinBlockEntity::new, DIAMOND_BIN_BLOCK).build(null));
-
-        NETHERITE_BIN_BLOCK = Registry.register(Registries.BLOCK, NETHERITE_BIN, new NetheriteBinBlock(FabricBlockSettings.copyOf(Blocks.CHEST).requiresTool()));
-        NETHERITE_BIN_BLOCK_ITEM = Registry.register(Registries.ITEM, NETHERITE_BIN, new BlockItem(NETHERITE_BIN_BLOCK, new Item.Settings()));
-        NETHERITE_BIN_BLOCK_ENTITY = Registry.register(Registries.BLOCK_ENTITY_TYPE, NETHERITE_BIN, FabricBlockEntityTypeBuilder.create(NetheriteBinBlockEntity::new, NETHERITE_BIN_BLOCK).build(null));
-
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(content -> {
             content.add(WOODEN_BIN_BLOCK_ITEM);
-            content.add(IRON_BIN_BLOCK_ITEM);
-            content.add(DIAMOND_BIN_BLOCK_ITEM);
-            content.add(NETHERITE_BIN_BLOCK_ITEM);
         });
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(literal("reloadbinconfig")
@@ -129,6 +97,8 @@ public class SellingBinMod implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        PayloadTypeRegistry.playS2C().register(ConfigSynchronizer.SyncPacket.ID, ConfigSynchronizer.SyncPacket.CODEC);
+        
         if (!inventoryFile.exists()) {
             try {
                 inventoryFile.createNewFile();
@@ -168,6 +138,24 @@ public class SellingBinMod implements ModInitializer {
         ));
 
         ServerPlayConnectionEvents.INIT.register(ConfigSynchronizer::server);
+
+        ServerTickEvents.END_WORLD_TICK.register((world) -> {
+            if (world.getTimeOfDay() == 2000) {
+                world.getServer().getPlayerManager().getPlayerList().forEach(WoodenBinBlockEntity::sellItems);
+            }
+        });
+
+        UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
+            if (!world.isClient && world.getBlockState(hitResult.getBlockPos()).getBlock() instanceof WoodenBinBlock) {
+
+                NamedScreenHandlerFactory screenHandlerFactory = world.getBlockState(hitResult.getBlockPos()).createScreenHandlerFactory(world, hitResult.getBlockPos());
+                if (screenHandlerFactory != null) {
+                    player.openHandledScreen(screenHandlerFactory);
+                }
+                return ActionResult.SUCCESS;
+            }
+            return ActionResult.PASS;
+        });
     }
 
     public static void reload() {
@@ -191,10 +179,8 @@ public class SellingBinMod implements ModInitializer {
                 Trade trade = gson.fromJson(tradeElement, Trade.class);
                 trade.setName(key);
 
-                Identifier id1 = new Identifier(key);
+                Identifier id1 = Identifier.of(key);
                 wrongIdItemsCheck.put(id1, Registries.ITEM.get(id1));
-                Identifier id2 = new Identifier(trade.getCurrency());
-                wrongIdItemsCheck.put(id2, Registries.ITEM.get(id2));
                 trades.add(trade);
             }
         } catch (FileNotFoundException e) {

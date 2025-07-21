@@ -90,12 +90,10 @@ public class SellingBinMod implements ModInitializer {
         // Save selling data when disconnected
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> ((SellingBinPlayerAccessor)(handler.player)).saveSellingData());
         ServerTickEvents.END_WORLD_TICK.register((world) -> {
-            if (world.getTimeOfDay() % 2000 == 0) {
-                // Sell all players' items at 8:00 daytime
-                if (world.getTimeOfDay() == 2000) world.getServer().getPlayerManager().getPlayerList().forEach(BinBlockEntity::sellItems);
-                // Periodically save data
-                world.getServer().getPlayerManager().getPlayerList().forEach(player -> ((SellingBinPlayerAccessor)player).saveSellingData());
-            };
+            // Sell all players' items at 8:00 daytime
+            if (world.getTimeOfDay() % 24000 == 2000) world.getServer().getPlayerManager().getPlayerList().forEach(BinBlockEntity::sellItems);
+            // Periodically save data
+            if (world.getTimeOfDay() % 2000 == 0) world.getServer().getPlayerManager().getPlayerList().forEach(player -> ((SellingBinPlayerAccessor)player).saveSellingData());
         });
         // Command to see player's bin
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, registrationEnvironment) -> dispatcher.register(

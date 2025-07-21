@@ -1,4 +1,4 @@
-package net.joe.sellingbin.bins.wooden;
+package top.bearcabbage.sellingbin;
 
 import com.mojang.serialization.MapCodec;
 import net.minecraft.block.Block;
@@ -16,22 +16,21 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
-import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-public class WoodenBinBlock extends BlockWithEntity {
+public class BinBlock extends BlockWithEntity {
     public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
 
-    public WoodenBinBlock(Settings settings) {
+    public BinBlock(Settings settings) {
         super(settings);
     }
 
     @Override
     protected MapCodec<? extends BlockWithEntity> getCodec() {
-        return createCodec(WoodenBinBlock::new);
+        return createCodec(BinBlock::new);
     }
 
     @Override
@@ -57,7 +56,7 @@ public class WoodenBinBlock extends BlockWithEntity {
 
     @Override
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        return new WoodenBinBlockEntity(pos, state);
+        return new BinBlockEntity(pos, state);
     }
 
     @Override
@@ -73,5 +72,18 @@ public class WoodenBinBlock extends BlockWithEntity {
     @Override
     public int getComparatorOutput(BlockState state, World world, BlockPos pos) {
         return ScreenHandler.calculateComparatorOutput(world.getBlockEntity(pos));
+    }
+
+    @Override
+    protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
+        if (world.isClient) {
+            return ActionResult.SUCCESS;
+        } else {
+            NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
+            if (screenHandlerFactory != null) {
+                player.openHandledScreen(screenHandlerFactory);
+            }
+            return ActionResult.SUCCESS;
+        }
     }
 }

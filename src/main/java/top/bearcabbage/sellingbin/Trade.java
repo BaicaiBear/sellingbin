@@ -1,4 +1,4 @@
-package net.joe.sellingbin;
+package top.bearcabbage.sellingbin;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;

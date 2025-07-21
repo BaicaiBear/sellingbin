@@ -4,17 +4,17 @@
   "version": "${version}",
   "name": "Selling Bin",
   "description": "A configurable block that automatically sells items placed inside it at midnight",
-  "authors": ["V4LK and Joe"],
+  "authors": ["V4LK and Joe and BaicaiBear"],
   "contact": {},
   "license": "All-Rights-Reserved",
   "icon": "assets/selling-bin/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.joe.sellingbin.SellingBinMod"
+      "top.bearcabbage.sellingbin.SellingBinMod"
     ],
     "client": [
-      "net.joe.sellingbin.client.SellingBinModClient"
+      "top.bearcabbage.sellingbin.client.SellingBinModClient"
     ]
   },
   "depends": {

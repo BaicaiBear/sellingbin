@@ -1,8 +1,6 @@
-package net.joe.sellingbin.bins.wooden;
+package top.bearcabbage.sellingbin;
 
 import com.glisco.numismaticoverhaul.item.MoneyBagItem;
-import net.joe.sellingbin.SellingBinMod;
-import net.joe.sellingbin.Trade;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -22,12 +20,10 @@ import net.minecraft.util.math.BlockPos;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WoodenBinBlockEntity extends BlockEntity implements NamedScreenHandlerFactory {
-    private long lastSellDay = -1;
-    private long lastSellTime = 99999;
+public class BinBlockEntity extends BlockEntity implements NamedScreenHandlerFactory {
 
-    public WoodenBinBlockEntity(BlockPos pos, BlockState state) {
-        super(SellingBinMod.WOODEN_BIN_BLOCK_ENTITY, pos, state);
+    public BinBlockEntity(BlockPos pos, BlockState state) {
+        super(SellingBinMod.BIN_BLOCK_ENTITY, pos, state);
     }
 
     @Override
@@ -91,7 +87,7 @@ public class WoodenBinBlockEntity extends BlockEntity implements NamedScreenHand
     private static void handleItemRemainders(PlayerEntity player, ItemStack itemStack, int slotCounter, int remainingAmount) {
         if (slotCounter > 26) {
             if(player instanceof ServerPlayerEntity serverPlayer) {
-                serverPlayer.sendMessage(Text.literal("收货箱里的货物溢出来，拾荒者小熊悄悄收集起来了～"));
+                serverPlayer.sendMessage(Text.literal("收货箱里的"+itemStack.getCount()+"个"+itemStack.getItem().getName().getLiteralString()+"溢出来，拾荒者小熊悄悄捡走了～"));
             }
         } else {
             SellingBinMod.inventoryManager.getPlayerInventory(player.getUuid())
@@ -102,7 +98,7 @@ public class WoodenBinBlockEntity extends BlockEntity implements NamedScreenHand
     private static void handleSoldItems(PlayerEntity player, int currencyAmount, ItemStack itemStack, int sellAmount, int slotCounter) {
         if (slotCounter > 26) {
             if(player instanceof ServerPlayerEntity serverPlayer) {
-                serverPlayer.sendMessage(Text.literal("收货箱里的钱币溢出来了，被可爱的小熊顺走了～"));
+                serverPlayer.sendMessage(Text.literal("收货箱里的钱币溢出来了，"+currencyAmount * (itemStack.getCount() / sellAmount)+"铜被可爱的小熊顺走了～"));
             }
         } else {
             SellingBinMod.inventoryManager.getPlayerInventory(player.getUuid()).getWoodenBin()
@@ -113,7 +109,7 @@ public class WoodenBinBlockEntity extends BlockEntity implements NamedScreenHand
     private static void handleUnmatchedItems(PlayerEntity player, ItemStack itemStack, int slotCounter) {
         if (slotCounter > 26) {
             if(player instanceof ServerPlayerEntity serverPlayer) {
-                serverPlayer.sendMessage(Text.literal("收货箱里的杂物装不下了，被路边的小熊搬走了～"));
+                serverPlayer.sendMessage(Text.literal("收货箱里的"+itemStack.getCount()+"个"+itemStack.getItem().getName()+"装不下了，被路边的小熊搬走了～"));
             }
         } else {
             SellingBinMod.inventoryManager.getPlayerInventory(player.getUuid()).getWoodenBin().setStack(slotCounter, itemStack);

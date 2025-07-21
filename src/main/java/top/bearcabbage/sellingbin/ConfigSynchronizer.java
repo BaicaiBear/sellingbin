@@ -1,6 +1,6 @@
-package net.joe.sellingbin;
+package top.bearcabbage.sellingbin;
 
-import net.joe.sellingbin.client.SellingBinModClient;
+import top.bearcabbage.sellingbin.client.SellingBinModClient;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.MinecraftClient;

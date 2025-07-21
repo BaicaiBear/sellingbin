@@ -9,15 +9,15 @@ import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.collection.DefaultedList;
 
-public interface ImplementedInventory extends Inventory {
+public interface SellingBinInventory extends Inventory {
 
     DefaultedList<ItemStack> getItems();
 
-    static ImplementedInventory of(DefaultedList<ItemStack> items) {
+    static SellingBinInventory of(DefaultedList<ItemStack> items) {
         return () -> items;
     }
 
-    static ImplementedInventory ofSize(int size) {
+    static SellingBinInventory ofSize(int size) {
         return of(DefaultedList.ofSize(size, ItemStack.EMPTY));
     }
 

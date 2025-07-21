@@ -29,7 +29,6 @@ public class BinQueryScreen implements NamedScreenHandlerFactory {
     @Override
     public @Nullable ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
         return new GenericContainerScreenHandler(ScreenHandlerType.GENERIC_9X3, syncId, playerInventory,
-                SellingBinMod.inventoryManager.getPlayerInventory(this.player.getUuid()).getWoodenBin(), 3);
-
+                ((SellingBinPlayerAccessor)(this.player)).getSellingBinInventory(), 3);
     }
 }

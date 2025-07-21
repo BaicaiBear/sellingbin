@@ -23,8 +23,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroups;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.screen.NamedScreenHandlerFactory;
@@ -37,7 +35,6 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -70,8 +67,6 @@ public class SellingBinMod implements ModInitializer {
     public static final BlockEntityType<BinBlockEntity> BIN_BLOCK_ENTITY;
     public static final Identifier WOODEN_BIN = Identifier.of("selling-bin", "wooden_bin");
 
-    public static final PlayerInventoryManager inventoryManager = new PlayerInventoryManager();
-    private static HashMap<Identifier, Item> wrongIdItemsCheck;
 
     static {
         BIN_BLOCK = Registry.register(Registries.BLOCK, WOODEN_BIN, new BinBlock(FabricBlockSettings.copyOf(Blocks.CHEST).requiresTool()));
@@ -93,50 +88,41 @@ public class SellingBinMod implements ModInitializer {
         // Sync trades to client when connected
         ServerPlayConnectionEvents.INIT.register(ConfigSynchronizer::server);
         // Save selling data when disconnected
-        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> inventoryManager.save(server));
-        // Load selling data when connected
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            NbtCompound sellingData = SellingBinData.load(handler.player);
-            if (sellingData == null) return;
-            NbtList sellingList = (NbtList) sellingData.get("sellingBinData");
-            if (sellingList == null) return;
-            ImplementedInventory inventory = ImplementedInventory.ofSize(27);
-            inventory.readNbtList(sellingList, server.getRegistryManager());
-            inventoryManager.setPlayerInventories(handler.player.getUuid(), new PlayerInventory(inventory));
-        });
-        // Sell all players' items at 8:00 daytime and save data
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> ((SellingBinPlayerAccessor)(handler.player)).saveSellingData());
         ServerTickEvents.END_WORLD_TICK.register((world) -> {
-            if (world.getTimeOfDay() == 2000) {
-                world.getServer().getPlayerManager().getPlayerList().forEach(BinBlockEntity::sellItems);
-            }
-            if (world.getTimeOfDay() % 2000 == 0) inventoryManager.save(world.getServer());
+            if (world.getTimeOfDay() % 2000 == 0) {
+                // Sell all players' items at 8:00 daytime
+                if (world.getTimeOfDay() == 2000) world.getServer().getPlayerManager().getPlayerList().forEach(BinBlockEntity::sellItems);
+                // Periodically save data
+                world.getServer().getPlayerManager().getPlayerList().forEach(player -> ((SellingBinPlayerAccessor)player).saveSellingData());
+            };
         });
         // Command to see player's bin
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, registrationEnvironment) -> dispatcher.register(
                 literal("sellingbin-openas")
-                        .requires(source -> source.hasPermissionLevel(2))
-                        .then(argument("name", EntityArgumentType.entities()))
-                        .executes(context -> {
-                            if (!context.getSource().isExecutedByPlayer()) {
-                                context.getSource().sendError(Text.literal("只能由玩家执行此指令"));
-                                return 0;
-                            }
-                            Collection<? extends Entity> targets = EntityArgumentType.getEntities(context,"name");
-                            if (targets.size()!=1) {
-                                context.getSource().sendError(Text.literal("只能选择「一个」玩家查看售货箱"));
-                                return 0;
-                            }
-                            Entity target = targets.iterator().next();
-                            if (target instanceof ServerPlayerEntity player) {
-                                NamedScreenHandlerFactory screenHandlerFactory = BinQueryScreen.of(player);
-                                context.getSource().getPlayer().openHandledScreen(screenHandlerFactory);
-                                return 1;
-                            } else {
-                                context.getSource().sendError(Text.literal("只能查看「玩家」的售货箱"));
-                                return 0;
-                            }
-                        })
-        ));
+                        .then(argument("name", EntityArgumentType.entities())
+                                .requires(source -> source.hasPermissionLevel(2))
+                                .executes(context -> {
+                                    if (!context.getSource().isExecutedByPlayer()) {
+                                        context.getSource().sendError(Text.literal("只能由玩家执行此指令"));
+                                        return 0;
+                                    }
+                                    Collection<? extends Entity> targets = EntityArgumentType.getEntities(context,"name");
+                                    if (targets.size()!=1) {
+                                        context.getSource().sendError(Text.literal("只能选择「一个」玩家查看售货箱"));
+                                        return 0;
+                                    }
+                                    Entity target = targets.iterator().next();
+                                    if (target instanceof ServerPlayerEntity player) {
+                                        NamedScreenHandlerFactory screenHandlerFactory = BinQueryScreen.of(player);
+                                        context.getSource().getPlayer().openHandledScreen(screenHandlerFactory);
+                                        return 1;
+                                    } else {
+                                        context.getSource().sendError(Text.literal("只能查看「玩家」的售货箱"));
+                                        return 0;
+                                    }
+                                })
+                        )));
         // Reload config command
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(literal("reloadbinconfig")
                 .requires(source -> source.hasPermissionLevel(2))
@@ -156,12 +142,11 @@ public class SellingBinMod implements ModInitializer {
                 }
                 LOGGER.info("Default config has been written to the file.");
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.warn(e.getMessage());
             }
         }
 
         try {
-            wrongIdItemsCheck = new HashMap<>();
             JsonObject json = JsonParser.parseReader(new FileReader(configFile)).getAsJsonObject();
             for (String key : json.keySet()) {
                 JsonElement tradeElement = json.get(key);
@@ -169,11 +154,10 @@ public class SellingBinMod implements ModInitializer {
                 trade.setName(key);
 
                 Identifier id1 = Identifier.of(key);
-                wrongIdItemsCheck.put(id1, Registries.ITEM.get(id1));
                 trades.add(trade);
             }
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            LOGGER.warn(e.getMessage());
         }
     }
 }

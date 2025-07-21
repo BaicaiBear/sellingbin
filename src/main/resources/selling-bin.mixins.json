@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "top.bearcabbage.sellingbin.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ServerPlayerEntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "client": [
+  ]
+}

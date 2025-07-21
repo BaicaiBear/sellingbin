@@ -29,7 +29,7 @@ public class BinBlockEntity extends BlockEntity implements NamedScreenHandlerFac
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
         return new GenericContainerScreenHandler(ScreenHandlerType.GENERIC_9X3, syncId, playerInventory,
-                SellingBinMod.inventoryManager.getPlayerInventory(player.getUuid()).getWoodenBin(), 3);
+                ((SellingBinPlayerAccessor)player).getSellingBinInventory(), 3);
     }
 
     @Override
@@ -38,7 +38,7 @@ public class BinBlockEntity extends BlockEntity implements NamedScreenHandlerFac
     }
 
     public static void sellItems(PlayerEntity player) {
-        var playerInventory = SellingBinMod.inventoryManager.getPlayerInventory(player.getUuid()).getWoodenBin();
+        var playerInventory = ((SellingBinPlayerAccessor)player).getSellingBinInventory();
 
         List<ItemStack> inventoryCopy = new ArrayList<>(playerInventory.getItems());
         List<Trade> trades = SellingBinMod.trades;
@@ -90,8 +90,7 @@ public class BinBlockEntity extends BlockEntity implements NamedScreenHandlerFac
                 serverPlayer.sendMessage(Text.literal("收货箱里的"+itemStack.getCount()+"个"+itemStack.getItem().getName().getLiteralString()+"溢出来，拾荒者小熊悄悄捡走了～"));
             }
         } else {
-            SellingBinMod.inventoryManager.getPlayerInventory(player.getUuid())
-                    .getWoodenBin().setStack(slotCounter, new ItemStack(itemStack.getItem(), remainingAmount));
+            ((SellingBinPlayerAccessor)player).getSellingBinInventory().setStack(slotCounter, new ItemStack(itemStack.getItem(), remainingAmount));
         }
     }
 
@@ -101,8 +100,7 @@ public class BinBlockEntity extends BlockEntity implements NamedScreenHandlerFac
                 serverPlayer.sendMessage(Text.literal("收货箱里的钱币溢出来了，"+currencyAmount * (itemStack.getCount() / sellAmount)+"铜被可爱的小熊顺走了～"));
             }
         } else {
-            SellingBinMod.inventoryManager.getPlayerInventory(player.getUuid()).getWoodenBin()
-                    .setStack(slotCounter, MoneyBagItem.fromRawValue((long) currencyAmount * (itemStack.getCount() / sellAmount)));
+            ((SellingBinPlayerAccessor)player).getSellingBinInventory().setStack(slotCounter, MoneyBagItem.fromRawValue((long) currencyAmount * (itemStack.getCount() / sellAmount)));
         }
     }
 
@@ -112,7 +110,7 @@ public class BinBlockEntity extends BlockEntity implements NamedScreenHandlerFac
                 serverPlayer.sendMessage(Text.literal("收货箱里的"+itemStack.getCount()+"个"+itemStack.getItem().getName()+"装不下了，被路边的小熊搬走了～"));
             }
         } else {
-            SellingBinMod.inventoryManager.getPlayerInventory(player.getUuid()).getWoodenBin().setStack(slotCounter, itemStack);
+            ((SellingBinPlayerAccessor)player).getSellingBinInventory().setStack(slotCounter, itemStack);
         }
     }
 
